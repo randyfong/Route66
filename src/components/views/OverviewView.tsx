@@ -1,18 +1,28 @@
 "use client";
 
 import { GlassCard } from "../ui/GlassCard";
-import { orders } from "@/data/mockData";
+import { orders as allOrders, type Order } from "@/data/mockData";
 import { DollarSign, Users, TrendingUp, Tag } from "lucide-react";
 
-export function OverviewView() {
+type OverviewViewProps = {
+  orders?: Order[];
+  scopeTitle?: string;
+  scopeDescription?: string;
+};
+
+export function OverviewView({
+  orders = allOrders,
+  scopeTitle = "All Orders",
+  scopeDescription = "Revenue and order impact by active promotion",
+}: OverviewViewProps) {
   const totalRevenue = orders.reduce((sum, order) => sum + order.amount, 0);
-  const newCustomers = 12; // mock
   const campaignRoi = "+24%"; // mock
   const promotedOrders = orders.filter((order) => order.appliedPromotion);
   const promotedRevenue = promotedOrders.reduce((sum, order) => sum + order.amount, 0);
-  const promotedOrderShare = Math.round((promotedOrders.length / orders.length) * 100);
-  const averagePromotedTicket = promotedRevenue / promotedOrders.length;
+  const promotedOrderShare = orders.length > 0 ? Math.round((promotedOrders.length / orders.length) * 100) : 0;
+  const averagePromotedTicket = promotedOrders.length > 0 ? promotedRevenue / promotedOrders.length : 0;
   const promoLift = promotedRevenue * 0.24;
+  const uniqueCustomers = new Set(orders.map((order) => order.customerId)).size;
   const promotionBreakdown = Object.values(
     promotedOrders.reduce<
       Record<string, { name: string; orders: number; revenue: number }>
@@ -25,7 +35,8 @@ export function OverviewView() {
     }, {})
   ).sort((a, b) => b.revenue - a.revenue);
   const topPromotionRevenue = Math.max(
-    ...promotionBreakdown.map((promotion) => promotion.revenue)
+    ...promotionBreakdown.map((promotion) => promotion.revenue),
+    1
   );
   
   const recentOrders = [...orders].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5);
@@ -53,8 +64,8 @@ export function OverviewView() {
               <Users className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm font-medium text-white/60">New Customers</p>
-              <h3 className="text-2xl font-bold text-white">+{newCustomers}</h3>
+              <p className="text-sm font-medium text-white/60">Customers</p>
+              <h3 className="text-2xl font-bold text-white">{uniqueCustomers}</h3>
             </div>
           </div>
         </GlassCard>
@@ -78,7 +89,7 @@ export function OverviewView() {
             </div>
             <div>
               <p className="text-sm font-medium text-white/60">Active Promos</p>
-              <h3 className="text-2xl font-bold text-white">4</h3>
+              <h3 className="text-2xl font-bold text-white">{promotionBreakdown.length}</h3>
             </div>
           </div>
         </GlassCard>
@@ -90,7 +101,8 @@ export function OverviewView() {
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <h3 className="text-lg font-semibold text-white/90">Campaign Performance</h3>
-                <p className="text-sm text-white/50">Revenue and order impact by active promotion</p>
+                <p className="text-sm text-white/50">{scopeDescription}</p>
+                <p className="mt-1 text-xs font-medium uppercase tracking-wider text-teal-300">{scopeTitle}</p>
               </div>
               <div className="text-left sm:text-right">
                 <p className="text-xs uppercase tracking-wider text-white/40">Promoted Revenue</p>
@@ -116,25 +128,31 @@ export function OverviewView() {
               </div>
             </div>
 
-            <div className="space-y-4">
-              {promotionBreakdown.map((promotion) => (
-                <div key={promotion.name} className="space-y-2">
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <p className="font-medium text-white/90">{promotion.name}</p>
-                      <p className="text-xs text-white/45">{promotion.orders} orders</p>
+            {promotionBreakdown.length > 0 ? (
+              <div className="space-y-4">
+                {promotionBreakdown.map((promotion) => (
+                  <div key={promotion.name} className="space-y-2">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="font-medium text-white/90">{promotion.name}</p>
+                        <p className="text-xs text-white/45">{promotion.orders} orders</p>
+                      </div>
+                      <p className="text-sm font-bold text-white">${promotion.revenue.toFixed(2)}</p>
                     </div>
-                    <p className="text-sm font-bold text-white">${promotion.revenue.toFixed(2)}</p>
+                    <div className="h-3 overflow-hidden rounded-full bg-white/10">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-red-400 via-pink-400 to-teal-300"
+                        style={{ width: `${Math.max((promotion.revenue / topPromotionRevenue) * 100, 8)}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className="h-3 overflow-hidden rounded-full bg-white/10">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-red-400 via-pink-400 to-teal-300"
-                      style={{ width: `${Math.max((promotion.revenue / topPromotionRevenue) * 100, 8)}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-lg border border-white/10 bg-white/5 p-5 text-sm text-white/60">
+                No promotions were applied to the current order selection.
+              </div>
+            )}
           </div>
         </GlassCard>
         
