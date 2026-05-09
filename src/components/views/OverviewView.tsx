@@ -8,6 +8,25 @@ export function OverviewView() {
   const totalRevenue = orders.reduce((sum, order) => sum + order.amount, 0);
   const newCustomers = 12; // mock
   const campaignRoi = "+24%"; // mock
+  const promotedOrders = orders.filter((order) => order.appliedPromotion);
+  const promotedRevenue = promotedOrders.reduce((sum, order) => sum + order.amount, 0);
+  const promotedOrderShare = Math.round((promotedOrders.length / orders.length) * 100);
+  const averagePromotedTicket = promotedRevenue / promotedOrders.length;
+  const promoLift = promotedRevenue * 0.24;
+  const promotionBreakdown = Object.values(
+    promotedOrders.reduce<
+      Record<string, { name: string; orders: number; revenue: number }>
+    >((result, order) => {
+      const name = order.appliedPromotion ?? "None";
+      result[name] ??= { name, orders: 0, revenue: 0 };
+      result[name].orders += 1;
+      result[name].revenue += order.amount;
+      return result;
+    }, {})
+  ).sort((a, b) => b.revenue - a.revenue);
+  const topPromotionRevenue = Math.max(
+    ...promotionBreakdown.map((promotion) => promotion.revenue)
+  );
   
   const recentOrders = [...orders].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5);
 
@@ -66,10 +85,56 @@ export function OverviewView() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <GlassCard className="lg:col-span-2 p-6 min-h-[300px] flex items-center justify-center">
-          <div className="text-center">
-            <h3 className="text-lg font-semibold text-white/80 mb-2">Campaign Performance</h3>
-            <p className="text-sm text-white/50">Chart visualization would go here</p>
+        <GlassCard className="lg:col-span-2 p-6 min-h-[300px]">
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-white/90">Campaign Performance</h3>
+                <p className="text-sm text-white/50">Revenue and order impact by active promotion</p>
+              </div>
+              <div className="text-left sm:text-right">
+                <p className="text-xs uppercase tracking-wider text-white/40">Promoted Revenue</p>
+                <p className="text-2xl font-bold text-teal-300">${promotedRevenue.toFixed(2)}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+                <p className="text-xs font-medium uppercase tracking-wider text-white/40">Promo Orders</p>
+                <p className="mt-2 text-2xl font-bold text-white">{promotedOrders.length}</p>
+                <p className="mt-1 text-sm text-white/50">{promotedOrderShare}% of all orders</p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+                <p className="text-xs font-medium uppercase tracking-wider text-white/40">Avg Promo Ticket</p>
+                <p className="mt-2 text-2xl font-bold text-white">${averagePromotedTicket.toFixed(2)}</p>
+                <p className="mt-1 text-sm text-white/50">Across promoted checks</p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+                <p className="text-xs font-medium uppercase tracking-wider text-white/40">Estimated Lift</p>
+                <p className="mt-2 text-2xl font-bold text-white">${promoLift.toFixed(2)}</p>
+                <p className="mt-1 text-sm text-white/50">Based on {campaignRoi} ROI</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {promotionBreakdown.map((promotion) => (
+                <div key={promotion.name} className="space-y-2">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="font-medium text-white/90">{promotion.name}</p>
+                      <p className="text-xs text-white/45">{promotion.orders} orders</p>
+                    </div>
+                    <p className="text-sm font-bold text-white">${promotion.revenue.toFixed(2)}</p>
+                  </div>
+                  <div className="h-3 overflow-hidden rounded-full bg-white/10">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-red-400 via-pink-400 to-teal-300"
+                      style={{ width: `${Math.max((promotion.revenue / topPromotionRevenue) * 100, 8)}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </GlassCard>
         

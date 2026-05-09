@@ -54,7 +54,7 @@ export function CustomerLoyaltyView() {
       <GlassCard className="p-6">
         <h3 className="text-xl font-bold text-white/90 mb-6">Top Customers</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {topCustomers.map((customer, i) => (
+          {topCustomers.map((customer) => (
             <div key={customer.id} className="bg-white/5 rounded-xl p-4 border border-white/10 hover:bg-white/10 transition-colors">
               <div className="flex justify-between items-start mb-2">
                 <span className="font-bold text-white text-lg">{customer.name}</span>

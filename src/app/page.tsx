@@ -45,7 +45,7 @@ export default function Home() {
   });
 
   return (
-    <main className="flex-1 p-8 overflow-y-auto">
+    <main className="flex-1 min-h-screen p-8 overflow-y-auto bg-slate-950 text-slate-100">
       <div className="max-w-7xl mx-auto">
         <header className="mb-8 border-b border-white/10 pb-6">
           <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-pink-300 to-teal-300 drop-shadow-[0_0_15px_rgba(244,114,182,0.4)]">
