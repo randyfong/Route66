@@ -17,25 +17,26 @@ export function OverviewView({
 }: OverviewViewProps) {
   const totalRevenue = orders.reduce((sum, order) => sum + order.amount, 0);
   const campaignRoi = "+24%"; // mock
+  const averageTicket = orders.length > 0 ? totalRevenue / orders.length : 0;
   const promotedOrders = orders.filter((order) => order.appliedPromotion);
   const promotedRevenue = promotedOrders.reduce((sum, order) => sum + order.amount, 0);
   const promotedOrderShare = orders.length > 0 ? Math.round((promotedOrders.length / orders.length) * 100) : 0;
-  const averagePromotedTicket = promotedOrders.length > 0 ? promotedRevenue / promotedOrders.length : 0;
   const promoLift = promotedRevenue * 0.24;
   const uniqueCustomers = new Set(orders.map((order) => order.customerId)).size;
-  const promotionBreakdown = Object.values(
-    promotedOrders.reduce<
-      Record<string, { name: string; orders: number; revenue: number }>
+  const orderBreakdown = Object.values(
+    orders.reduce<
+      Record<string, { name: string; orders: number; revenue: number; isPromotion: boolean }>
     >((result, order) => {
-      const name = order.appliedPromotion ?? "None";
-      result[name] ??= { name, orders: 0, revenue: 0 };
+      const name = order.appliedPromotion ?? "No Promotion";
+      result[name] ??= { name, orders: 0, revenue: 0, isPromotion: Boolean(order.appliedPromotion) };
       result[name].orders += 1;
       result[name].revenue += order.amount;
       return result;
     }, {})
   ).sort((a, b) => b.revenue - a.revenue);
+  const promotionBreakdown = orderBreakdown.filter((entry) => entry.isPromotion);
   const topPromotionRevenue = Math.max(
-    ...promotionBreakdown.map((promotion) => promotion.revenue),
+    ...orderBreakdown.map((promotion) => promotion.revenue),
     1
   );
   
@@ -105,21 +106,22 @@ export function OverviewView({
                 <p className="mt-1 text-xs font-medium uppercase tracking-wider text-teal-300">{scopeTitle}</p>
               </div>
               <div className="text-left sm:text-right">
-                <p className="text-xs uppercase tracking-wider text-white/40">Promoted Revenue</p>
-                <p className="text-2xl font-bold text-teal-300">${promotedRevenue.toFixed(2)}</p>
+                <p className="text-xs uppercase tracking-wider text-white/40">Selected Revenue</p>
+                <p className="text-2xl font-bold text-teal-300">${totalRevenue.toFixed(2)}</p>
+                <p className="text-xs text-white/45">${promotedRevenue.toFixed(2)} promoted</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-                <p className="text-xs font-medium uppercase tracking-wider text-white/40">Promo Orders</p>
-                <p className="mt-2 text-2xl font-bold text-white">{promotedOrders.length}</p>
-                <p className="mt-1 text-sm text-white/50">{promotedOrderShare}% of all orders</p>
+                <p className="text-xs font-medium uppercase tracking-wider text-white/40">Selected Orders</p>
+                <p className="mt-2 text-2xl font-bold text-white">{orders.length}</p>
+                <p className="mt-1 text-sm text-white/50">{promotedOrders.length} promo orders</p>
               </div>
               <div className="rounded-lg border border-white/10 bg-white/5 p-4">
-                <p className="text-xs font-medium uppercase tracking-wider text-white/40">Avg Promo Ticket</p>
-                <p className="mt-2 text-2xl font-bold text-white">${averagePromotedTicket.toFixed(2)}</p>
-                <p className="mt-1 text-sm text-white/50">Across promoted checks</p>
+                <p className="text-xs font-medium uppercase tracking-wider text-white/40">Avg Ticket</p>
+                <p className="mt-2 text-2xl font-bold text-white">${averageTicket.toFixed(2)}</p>
+                <p className="mt-1 text-sm text-white/50">{promotedOrderShare}% promo share</p>
               </div>
               <div className="rounded-lg border border-white/10 bg-white/5 p-4">
                 <p className="text-xs font-medium uppercase tracking-wider text-white/40">Estimated Lift</p>
@@ -128,9 +130,9 @@ export function OverviewView({
               </div>
             </div>
 
-            {promotionBreakdown.length > 0 ? (
+            {orderBreakdown.length > 0 ? (
               <div className="space-y-4">
-                {promotionBreakdown.map((promotion) => (
+                {orderBreakdown.map((promotion) => (
                   <div key={promotion.name} className="space-y-2">
                     <div className="flex items-center justify-between gap-4">
                       <div>
@@ -141,7 +143,11 @@ export function OverviewView({
                     </div>
                     <div className="h-3 overflow-hidden rounded-full bg-white/10">
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-red-400 via-pink-400 to-teal-300"
+                        className={`h-full rounded-full ${
+                          promotion.isPromotion
+                            ? "bg-gradient-to-r from-red-400 via-pink-400 to-teal-300"
+                            : "bg-white/30"
+                        }`}
                         style={{ width: `${Math.max((promotion.revenue / topPromotionRevenue) * 100, 8)}%` }}
                       />
                     </div>
@@ -150,7 +156,7 @@ export function OverviewView({
               </div>
             ) : (
               <div className="rounded-lg border border-white/10 bg-white/5 p-5 text-sm text-white/60">
-                No promotions were applied to the current order selection.
+                No orders match the current selection.
               </div>
             )}
           </div>

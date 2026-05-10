@@ -153,7 +153,17 @@ export default function Home() {
               : "Dashboard metrics are filtered by the chat request",
         });
 
-        return `Updated the dashboard to show ${selectedOrders.length} matching orders.`;
+        const selectedRevenue = selectedOrders.reduce((sum, order) => sum + order.amount, 0);
+        const promotedOrders = selectedOrders.filter((order) => order.appliedPromotion);
+        const promotions = Array.from(
+          new Set(promotedOrders.map((order) => order.appliedPromotion).filter(Boolean))
+        );
+
+        return [
+          `Updated the dashboard to show ${selectedOrders.length} matching orders.`,
+          `Selected revenue is $${selectedRevenue.toFixed(2)}.`,
+          `${promotedOrders.length} orders have promotions${promotions.length > 0 ? `: ${promotions.join(", ")}` : "."}`,
+        ].join(" ");
       },
     },
     []
