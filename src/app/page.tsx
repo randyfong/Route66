@@ -32,6 +32,11 @@ export default function Home() {
   });
 
   useCopilotReadable({
+    description: "The specific orders currently visible on the dashboard after applying filters.",
+    value: dashboardOrders.slice(0, 100),
+  });
+
+  useCopilotReadable({
     description:
       "Current dashboard state. If the user asks to update, reflect, filter, or show specific orders in the dashboard, call updateDashboardOrders so the UI changes.",
     value: {
@@ -190,7 +195,7 @@ export default function Home() {
           />
         )}
         {currentView === "loyalty" && <CustomerLoyaltyView />}
-        {currentView === "menu" && <MenuImpactView />}
+        {currentView === "menu" && <MenuImpactView orders={dashboardOrders} />}
       </div>
     </main>
   );

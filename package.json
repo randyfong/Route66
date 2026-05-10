@@ -6,8 +6,9 @@
     "node": ">=20.9.0"
   },
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "next dev --webpack",
+    "build": "next build --turbopack",
+    "compile": "next build --turbopack --experimental-build-mode compile",
     "start": "next start",
     "lint": "eslint"
   },
@@ -18,7 +19,6 @@
     "@copilotkit/react-ui": "^1.57.1",
     "@copilotkit/runtime": "^1.57.1",
     "@copilotkit/shared": "^1.57.1",
-    "@tailwindcss/oxide-darwin-arm64": "^4.3.0",
     "clsx": "^2.1.1",
     "hono": "^4.12.18",
     "lucide-react": "^1.14.0",

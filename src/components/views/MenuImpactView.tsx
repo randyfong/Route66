@@ -1,10 +1,10 @@
 "use client";
 
 import { GlassCard } from "../ui/GlassCard";
-import { orders } from "@/data/mockData";
+import { Order } from "@/data/mockData";
 import { Utensils, TrendingUp } from "lucide-react";
 
-export function MenuImpactView() {
+export function MenuImpactView({ orders }: { orders: Order[] }) {
   const itemCounts: Record<string, number> = {};
   const promoCounts: Record<string, number> = {};
   
